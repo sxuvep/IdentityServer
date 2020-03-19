@@ -9,6 +9,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
+using IdentityServer.Models;
+using Microsoft.AspNetCore.Identity;
 
 namespace IdentityServer
 {
@@ -32,7 +34,23 @@ namespace IdentityServer
 
             var migrationAssembly = typeof(Startup).Assembly.GetName().Name;
 
-            var builder = services.AddIdentityServer(options => {
+            //register identity db context to use sqlserver
+            services.AddDbContext<IdentityDbContext>(options =>
+            {
+                options.UseSqlServer(connectionString, sql => sql.MigrationsAssembly(migrationAssembly));
+            });
+
+            //register identity service to use idenitydb context
+            services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+             {
+                 options.SignIn.RequireConfirmedEmail = true;
+             })
+            .AddEntityFrameworkStores<IdentityDbContext>()
+            .AddDefaultTokenProviders();
+
+
+            var builder = services.AddIdentityServer(options =>
+            {
 
                 options.Events.RaiseErrorEvents = true;
                 options.Events.RaiseInformationEvents = true;
@@ -59,11 +77,9 @@ namespace IdentityServer
                 {
                     options.ConfigureDbContext = builder =>
                     builder.UseSqlServer(connectionString, options => options.MigrationsAssembly(migrationAssembly));
-                });
-
-                //.AddInMemoryIdentityResources(Config.Ids)
-                //.AddInMemoryApiResources(Config.Apis)
-                //.AddInMemoryClients(Config.Clients);
+                })
+                //configures users from identity store
+                .AddAspNetIdentity<ApplicationUser>();
 
             // not recommended for production - you need to store your key material somewhere secure
             builder.AddDeveloperSigningCredential();
@@ -76,14 +92,7 @@ namespace IdentityServer
                 app.UseDeveloperExceptionPage();
             }
 
-            app.Use(async (ctx, next) =>
-            {
-                await next();
-                if (ctx.Response.StatusCode == 204)
-                {
-                    ctx.Response.ContentLength = 0;
-                }
-            });
+            
             // uncomment if you want to add MVC
             app.UseStaticFiles();
             app.UseRouting();

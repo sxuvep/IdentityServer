@@ -6,6 +6,8 @@
   
   <ItemGroup>
     <PackageReference Include="IdentityServer4" Version="3.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="3.1.2" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.1" />
 
     <PackageReference Include="Serilog.AspNetCore" Version="3.2.0" />
 
@@ -17,5 +19,14 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="IdentityServer4.AspNetIdentity" Version="3.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.1.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Models\" />
+    <Folder Include="Data\Seed\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Quickstart\TestUsers.cs" />
   </ItemGroup>
 </Project>

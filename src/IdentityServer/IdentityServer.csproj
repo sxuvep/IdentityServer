@@ -28,5 +28,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Quickstart\TestUsers.cs" />
+    <Compile Remove="Config.cs" />
   </ItemGroup>
 </Project>

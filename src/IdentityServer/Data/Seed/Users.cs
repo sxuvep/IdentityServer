@@ -9,11 +9,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace IdentityServer.Data.Seed
 {
-    public class User
+    public class Users
     {
         public static void EnsureSeedData(string connectionString)
         {
             var services = new ServiceCollection();
+
+            services.AddLogging();
 
             services.AddDbContext<IdentityDbContext>(options =>
             options.UseSqlServer(connectionString));

@@ -11,6 +11,10 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
 using IdentityServer.Models;
 using Microsoft.AspNetCore.Identity;
+using IdentityServer4.EntityFramework.DbContexts;
+using System.Linq;
+using IdentityServer4.EntityFramework.Mappers;
+using IdentityServer.Data.Seed;
 
 namespace IdentityServer
 {
@@ -87,6 +91,14 @@ namespace IdentityServer
 
         public void Configure(IApplicationBuilder app)
         {
+            //this will do initial db seeding
+            bool seed = Configuration.GetSection("Data").GetValue<bool>("Seed");
+            if(seed)
+            {
+                this.InitializeDatabase(app);
+                throw new Exception("Seeding is completed. Disable the seed flag in appsettings");
+            }
+
             if (Environment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -105,6 +117,45 @@ namespace IdentityServer
             {
                 endpoints.MapDefaultControllerRoute();
             });
+        }
+
+        private void InitializeDatabase(IApplicationBuilder appBuilder)
+        {
+            using(var serviceScope = appBuilder.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
+            {
+                serviceScope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>().Database.Migrate();
+
+                var context = serviceScope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
+
+                context.Database.Migrate();
+
+                if(!context.Clients.Any())
+                {
+                    foreach (var client in Config.GetClients())
+                    {
+                        context.Clients.Add(client.ToEntity());
+                    }
+                    context.SaveChanges();
+                }
+
+                if (!context.IdentityResources.Any())
+                {
+                    foreach (var resource in Config.GetIdentityResources())
+                    {
+                        context.IdentityResources.Add(resource.ToEntity());
+                    }
+                    context.SaveChanges();
+                }
+
+                if (!context.ApiResources.Any())
+                {
+                    foreach (var resource in Config.GetApis())
+                    {
+                        context.ApiResources.Add(resource.ToEntity());
+                    }
+                    context.SaveChanges();
+                }
+            }
         }
     }
 }
